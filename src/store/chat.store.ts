@@ -2,19 +2,9 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { getSocket } from '../socket/socket';
 import { getRooms as fetchRooms, getMessages as fetchMessages } from '../api/chat';
-import type { Room, MessageResponse } from '../api/chat';
+import type { Room, MessageResponse, Message } from '../types';
 
-export type Message = {
-  id: string;
-  roomId: string;
-  senderId: string;
-  senderNickname?: string;
-  content: string;
-  type: 'TEXT' | 'SYSTEM';
-  createdAt: string;
-  status: 'pending' | 'confirmed' | 'failed';
-  clientMessageId: string;
-};
+export type { Message } from '../types';
 
 type ChatState = {
   rooms: Room[];

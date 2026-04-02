@@ -1,27 +1,7 @@
 import { apiClient } from './client';
+import type { Room, RoomMember, MessageResponse } from '../types';
 
-export type RoomMember = {
-  userId: string;
-  nickname: string;
-  profileImageUrl?: string;
-};
-
-export type Room = {
-  id: string;
-  type: 'DIRECT' | 'GROUP';
-  name: string | null;
-  lastMessageAt: string | null;
-  members: RoomMember[];
-};
-
-export type MessageResponse = {
-  id: string;
-  senderId: string;
-  senderNickname: string;
-  content: string;
-  type: 'TEXT' | 'SYSTEM';
-  createdAt: string;
-};
+export type { Room, RoomMember, MessageResponse } from '../types';
 
 type GetMessagesParams = {
   cursor?: string;

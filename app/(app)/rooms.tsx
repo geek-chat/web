@@ -3,14 +3,16 @@ import { View, FlatList, Text, Pressable, TextInput, StyleSheet } from 'react-na
 import { useRouter, Stack } from 'expo-router';
 import { useChat } from '../../src/hooks/useChat';
 import { useAuth } from '../../src/hooks/useAuth';
+import { useRoomList } from '../../src/hooks/useRoomList';
 import RoomListItem from '../../src/components/RoomListItem';
-import { createRoom } from '../../src/api/chat';
-import { colors } from '../../src/theme/colors';
+import EmptyState from '../../src/components/EmptyState';
+import { colors } from '../../src/theme';
 
 export default function RoomsScreen() {
   const router = useRouter();
-  const { rooms, loadRooms } = useChat();
+  useChat();
   const { user, logout } = useAuth();
+  const { rooms, loadRooms, createRoom } = useRoomList();
   const [showCreate, setShowCreate] = useState(false);
   const [targetName, setTargetName] = useState('');
 
@@ -22,8 +24,6 @@ export default function RoomsScreen() {
     if (!targetName.trim()) {
       return;
     }
-    // Phase 1: dev-login 사용자끼리 1:1 — userId를 직접 입력
-    // 프로덕션에서는 사용자 검색 UI로 교체
     try {
       const room = await createRoom([targetName.trim()]);
       setShowCreate(false);
@@ -40,7 +40,12 @@ export default function RoomsScreen() {
         options={{
           title: 'GeekChat',
           headerRight: () => (
-            <Pressable onPress={logout} style={styles.headerButton}>
+            <Pressable
+              onPress={logout}
+              style={styles.headerButton}
+              accessibilityRole="button"
+              accessibilityLabel="로그아웃"
+            >
               <Text style={styles.headerButtonText}>로그아웃</Text>
             </Pressable>
           ),
@@ -50,6 +55,8 @@ export default function RoomsScreen() {
         <Pressable
           style={styles.createButton}
           onPress={() => setShowCreate(!showCreate)}
+          accessibilityRole="button"
+          accessibilityLabel={showCreate ? '채팅 생성 취소' : '새 채팅 시작'}
         >
           <Text style={styles.createButtonText}>
             {showCreate ? '취소' : '+ 새 채팅'}
@@ -63,10 +70,16 @@ export default function RoomsScreen() {
               value={targetName}
               onChangeText={setTargetName}
               placeholder="상대방 User ID 입력"
-              placeholderTextColor={colors.textSecondary}
+              placeholderTextColor={colors.text.placeholder}
               onSubmitEditing={handleCreateRoom}
+              accessibilityLabel="상대방 User ID 입력"
             />
-            <Pressable style={styles.createSubmit} onPress={handleCreateRoom}>
+            <Pressable
+              style={styles.createSubmit}
+              onPress={handleCreateRoom}
+              accessibilityRole="button"
+              accessibilityLabel="채팅방 생성"
+            >
               <Text style={styles.createSubmitText}>생성</Text>
             </Pressable>
           </View>
@@ -82,10 +95,14 @@ export default function RoomsScreen() {
               onPress={() => router.push(`/(app)/chat/${item.id}`)}
             />
           )}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={10}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>채팅방이 없습니다</Text>
-            </View>
+            <EmptyState
+              title="채팅방이 없습니다"
+              description="위의 '+ 새 채팅' 버튼을 눌러 대화를 시작하세요"
+            />
           }
         />
       </View>
@@ -96,14 +113,14 @@ export default function RoomsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.bg.primary,
   },
   headerButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   headerButtonText: {
-    color: colors.primary,
+    color: colors.accent.primary,
     fontSize: 14,
   },
   createButton: {
@@ -113,7 +130,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   createButtonText: {
-    color: colors.primary,
+    color: colors.accent.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -126,30 +143,20 @@ const styles = StyleSheet.create({
   },
   createInput: {
     flex: 1,
-    backgroundColor: colors.surface,
-    color: colors.text,
+    backgroundColor: colors.bg.secondary,
+    color: colors.text.primary,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   createSubmit: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent.primary,
     borderRadius: 8,
     paddingHorizontal: 16,
     justifyContent: 'center',
   },
   createSubmitText: {
-    color: '#ffffff',
+    color: colors.bubble.mineText,
     fontWeight: '600',
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyText: {
-    color: colors.textSecondary,
-    fontSize: 16,
   },
 });

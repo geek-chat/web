@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuthStore } from '../../src/store/auth.store';
-import { colors } from '../../src/theme/colors';
+import { colors } from '../../src/theme';
+import LoadingSpinner from '../../src/components/LoadingSpinner';
 
 export default function AuthCallbackScreen() {
   const router = useRouter();
@@ -10,8 +11,6 @@ export default function AuthCallbackScreen() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
-    // OAuth 콜백: 서버가 /auth/success#access_token=...&refresh_token=... 로 리다이렉트
-    // expo-router는 hash fragment를 직접 파싱할 수 없으므로 window.location.hash 사용
     const hash =
       typeof window !== 'undefined' ? window.location.hash.substring(1) : '';
     const hashParams = new URLSearchParams(hash);
@@ -29,7 +28,7 @@ export default function AuthCallbackScreen() {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={colors.primary} />
+      <LoadingSpinner />
       <Text style={styles.text}>로그인 처리 중...</Text>
     </View>
   );
@@ -40,10 +39,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: colors.bg.primary,
   },
   text: {
-    color: colors.text,
+    color: colors.text.primary,
     marginTop: 16,
     fontSize: 16,
   },

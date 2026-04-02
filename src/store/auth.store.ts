@@ -1,12 +1,7 @@
 import { create } from 'zustand';
 import { setTokens, clearTokens, getRefreshToken } from '../utils/token';
 import { logout as logoutApi } from '../api/auth';
-
-type User = {
-  id: string;
-  nickname: string;
-  profileImageUrl?: string;
-};
+import type { User } from '../types';
 
 type AuthState = {
   accessToken: string | null;

@@ -23,6 +23,8 @@
 - Phase 1: StyleSheet.create() 사용 (NativeWind 등 라이브러리 추가 안 함)
 - 다크 모드 기본. 라이트 모드는 Phase 2.
 - 색상 팔레트를 src/theme/colors.ts에 중앙 관리.
+- 간격/폰트 크기/둥글기는 src/theme/spacing.ts에서 관리.
+- 공유 타입은 src/types/index.ts에 중앙 정의.
 
 ## 1. 아키텍처
 
@@ -114,9 +116,14 @@ type ChatState = {
 
 ### 실행 명령
 ```bash
+npx jest                          # 단위 테스트
 npx expo export --platform web    # 웹 빌드
 npx expo start --web              # 개발 서버
 ```
+
+### 테스트 구조
+- test/unit/ — 단위 테스트 (jest-expo)
+- jest.config.js — Jest 설정
 
 ## 5. 배포
 - Vercel: `npx expo export --platform web` → dist/ 폴더 배포
