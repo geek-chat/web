@@ -34,6 +34,7 @@ export default function ChatInput({ onSend }: Props) {
         numberOfLines={1}
         returnKeyType="send"
         blurOnSubmit={false}
+        testID="message-input"
         onKeyPress={(e) => {
           if (
             Platform.OS === 'web' &&
@@ -52,6 +53,7 @@ export default function ChatInput({ onSend }: Props) {
         disabled={!text.trim()}
         accessibilityRole="button"
         accessibilityLabel="메시지 전송"
+        testID="send-button"
       >
         <Text style={styles.sendText}>전송</Text>
       </Pressable>

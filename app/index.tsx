@@ -17,7 +17,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="login-screen">
       <Text style={styles.title}>GeekChat</Text>
       <Text style={styles.subtitle}>미니멀 메신저</Text>
 
@@ -26,6 +26,7 @@ export default function LoginScreen() {
         onPress={() => handleDevLogin('Alice')}
         accessibilityRole="button"
         accessibilityLabel="Alice로 로그인"
+        testID="dev-login-alice"
       >
         <Text style={styles.buttonText}>Alice로 로그인 (Dev)</Text>
       </Pressable>
@@ -34,6 +35,7 @@ export default function LoginScreen() {
         onPress={() => handleDevLogin('Bob')}
         accessibilityRole="button"
         accessibilityLabel="Bob으로 로그인"
+        testID="dev-login-bob"
       >
         <Text style={styles.buttonText}>Bob으로 로그인 (Dev)</Text>
       </Pressable>

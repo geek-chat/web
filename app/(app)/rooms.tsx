@@ -45,6 +45,7 @@ export default function RoomsScreen() {
               style={styles.headerButton}
               accessibilityRole="button"
               accessibilityLabel="로그아웃"
+              testID="logout-button"
             >
               <Text style={styles.headerButtonText}>로그아웃</Text>
             </Pressable>
@@ -57,6 +58,7 @@ export default function RoomsScreen() {
           onPress={() => setShowCreate(!showCreate)}
           accessibilityRole="button"
           accessibilityLabel={showCreate ? '채팅 생성 취소' : '새 채팅 시작'}
+          testID="new-chat-button"
         >
           <Text style={styles.createButtonText}>
             {showCreate ? '취소' : '+ 새 채팅'}

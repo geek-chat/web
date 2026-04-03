@@ -19,6 +19,7 @@ function MessageBubble({ message, isMine, showTimestamp = true, onRetry }: Props
     <View
       style={[styles.container, isMine ? styles.mine : styles.other]}
       accessibilityLabel={`${senderLabel}: ${message.content}, ${timeStr}`}
+      testID="message-bubble"
     >
       {!isMine && message.senderNickname && (
         <Text style={styles.nickname}>{message.senderNickname}</Text>
@@ -37,10 +38,10 @@ function MessageBubble({ message, isMine, showTimestamp = true, onRetry }: Props
       <View style={styles.meta}>
         {showTimestamp && <Text style={styles.time}>{timeStr}</Text>}
         {isMine && message.status === 'pending' && (
-          <Text style={styles.statusPending}>...</Text>
+          <Text style={styles.statusPending} testID="message-pending">...</Text>
         )}
         {isMine && message.status === 'confirmed' && (
-          <Text style={styles.statusConfirmed}>&#10003;</Text>
+          <Text style={styles.statusConfirmed} testID="message-confirmed">&#10003;</Text>
         )}
         {isMine && message.status === 'failed' && (
           <Pressable
@@ -48,7 +49,7 @@ function MessageBubble({ message, isMine, showTimestamp = true, onRetry }: Props
             accessibilityRole="button"
             accessibilityLabel="메시지 재전송"
           >
-            <Text style={styles.statusFailed}>!</Text>
+            <Text style={styles.statusFailed} testID="message-failed">!</Text>
           </Pressable>
         )}
       </View>

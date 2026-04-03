@@ -29,6 +29,7 @@ function RoomListItem({ room, currentUserId, onPress }: Props) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${displayName} 채팅방`}
+      testID="room-item"
     >
       <View style={styles.avatarWrapper}>
         <Avatar uri={profileImage} name={displayName} size={44} />
