@@ -9,6 +9,8 @@ export type { Message } from '../types';
 type ChatState = {
   rooms: Room[];
   messagesByRoom: Record<string, Message[]>;
+  /** roomId → { userId → lastReadAt } */
+  readStatusByRoom: Record<string, Record<string, string>>;
   loadRooms: () => Promise<void>;
   loadMessages: (roomId: string, cursor?: string) => Promise<void>;
   sendMessage: (roomId: string, content: string, senderId: string) => void;
@@ -21,11 +23,13 @@ type ChatState = {
     createdAt: string;
   }) => void;
   confirmMessage: (clientMessageId: string, serverId: string) => void;
+  updateReadStatus: (roomId: string, userId: string, lastReadAt: string) => void;
 };
 
 export const useChatStore = create<ChatState>((set, get) => ({
   rooms: [],
   messagesByRoom: {},
+  readStatusByRoom: {},
 
   loadRooms: async () => {
     const rooms = await fetchRooms();
@@ -98,9 +102,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   receiveMessage: (msg) => {
     set((state) => {
       const roomMessages = state.messagesByRoom[msg.roomId] || [];
-      // clientMessageId 기반 중복 방지
+      // 중복 방지: 서버 ID 또는 pending 메시지의 clientMessageId로 비교
       const isDuplicate = roomMessages.some(
-        (m) => m.id === msg.id || (m.status === 'confirmed' && m.id === msg.id),
+        (m) => m.id === msg.id || m.clientMessageId === msg.id,
       );
       if (isDuplicate) {
         return state;
@@ -129,13 +133,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
         const messages = newMessagesByRoom[roomId];
         const idx = messages.findIndex((m) => m.clientMessageId === clientMessageId);
         if (idx !== -1) {
-          const updated = [...messages];
-          updated[idx] = { ...updated[idx], id: serverId, status: 'confirmed' };
-          newMessagesByRoom[roomId] = updated;
+          // new_message가 ack보다 먼저 도착해서 이미 추가된 경우 → pending 제거
+          const alreadyExists = messages.some((m, i) => i !== idx && m.id === serverId);
+          if (alreadyExists) {
+            const updated = messages.filter((_, i) => i !== idx);
+            newMessagesByRoom[roomId] = updated;
+          } else {
+            const updated = [...messages];
+            updated[idx] = { ...updated[idx], id: serverId, status: 'confirmed' };
+            newMessagesByRoom[roomId] = updated;
+          }
           break;
         }
       }
       return { messagesByRoom: newMessagesByRoom };
     });
+  },
+
+  updateReadStatus: (roomId, userId, lastReadAt) => {
+    set((state) => ({
+      readStatusByRoom: {
+        ...state.readStatusByRoom,
+        [roomId]: {
+          ...(state.readStatusByRoom[roomId] || {}),
+          [userId]: lastReadAt,
+        },
+      },
+    }));
   },
 }));

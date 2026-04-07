@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { setTokens, clearTokens, getRefreshToken } from '../utils/token';
+import { setTokens, clearTokens, getAccessToken, getRefreshToken } from '../utils/token';
 import { logout as logoutApi } from '../api/auth';
 import type { User } from '../types';
 
@@ -8,9 +8,11 @@ type AuthState = {
   refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
+  isHydrated: boolean;
   login: (tokens: { accessToken: string; refreshToken: string }) => Promise<void>;
   logout: () => Promise<void>;
   setUser: (user: User) => void;
+  restoreAuth: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -18,6 +20,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   refreshToken: null,
   user: null,
   isAuthenticated: false,
+  isHydrated: false,
 
   login: async ({ accessToken, refreshToken }) => {
     await setTokens(accessToken, refreshToken);
@@ -39,4 +42,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setUser: (user) => set({ user }),
+
+  restoreAuth: async () => {
+    const accessToken = await getAccessToken();
+    const refreshToken = await getRefreshToken();
+    if (accessToken && refreshToken) {
+      set({ accessToken, refreshToken, isAuthenticated: true, isHydrated: true });
+    } else {
+      set({ isHydrated: true });
+    }
+  },
 }));

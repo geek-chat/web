@@ -36,10 +36,12 @@ export default function ChatInput({ onSend }: Props) {
         blurOnSubmit={false}
         testID="message-input"
         onKeyPress={(e) => {
+          const nativeEvent = e.nativeEvent as unknown as KeyboardEvent;
           if (
             Platform.OS === 'web' &&
             e.nativeEvent.key === 'Enter' &&
-            !(e.nativeEvent as unknown as KeyboardEvent).shiftKey
+            !nativeEvent.shiftKey &&
+            !nativeEvent.isComposing
           ) {
             e.preventDefault();
             handleSend();

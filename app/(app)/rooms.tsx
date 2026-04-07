@@ -4,7 +4,9 @@ import { useRouter, Stack } from 'expo-router';
 import { useChat } from '../../src/hooks/useChat';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useRoomList } from '../../src/hooks/useRoomList';
+import { useUserSearch } from '../../src/hooks/useUserSearch';
 import RoomListItem from '../../src/components/RoomListItem';
+import Avatar from '../../src/components/Avatar';
 import EmptyState from '../../src/components/EmptyState';
 import { colors } from '../../src/theme';
 
@@ -14,20 +16,18 @@ export default function RoomsScreen() {
   const { user, logout } = useAuth();
   const { rooms, loadRooms, createRoom } = useRoomList();
   const [showCreate, setShowCreate] = useState(false);
-  const [targetName, setTargetName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const { results: searchResults, isSearching } = useUserSearch(searchQuery);
 
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
 
-  const handleCreateRoom = async () => {
-    if (!targetName.trim()) {
-      return;
-    }
+  const handleSelectUser = async (targetUserId: string) => {
     try {
-      const room = await createRoom([targetName.trim()]);
+      const room = await createRoom([targetUserId]);
       setShowCreate(false);
-      setTargetName('');
+      setSearchQuery('');
       router.push(`/(app)/chat/${room.id}`);
     } catch (err) {
       console.error('Failed to create room:', err);
@@ -55,7 +55,10 @@ export default function RoomsScreen() {
       <View style={styles.container}>
         <Pressable
           style={styles.createButton}
-          onPress={() => setShowCreate(!showCreate)}
+          onPress={() => {
+            setShowCreate(!showCreate);
+            setSearchQuery('');
+          }}
           accessibilityRole="button"
           accessibilityLabel={showCreate ? '채팅 생성 취소' : '새 채팅 시작'}
           testID="new-chat-button"
@@ -66,24 +69,38 @@ export default function RoomsScreen() {
         </Pressable>
 
         {showCreate && (
-          <View style={styles.createForm}>
+          <View style={styles.searchSection}>
             <TextInput
-              style={styles.createInput}
-              value={targetName}
-              onChangeText={setTargetName}
-              placeholder="상대방 User ID 입력"
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="닉네임으로 검색"
               placeholderTextColor={colors.text.placeholder}
-              onSubmitEditing={handleCreateRoom}
-              accessibilityLabel="상대방 User ID 입력"
+              autoFocus
+              accessibilityLabel="닉네임으로 검색"
             />
-            <Pressable
-              style={styles.createSubmit}
-              onPress={handleCreateRoom}
-              accessibilityRole="button"
-              accessibilityLabel="채팅방 생성"
-            >
-              <Text style={styles.createSubmitText}>생성</Text>
-            </Pressable>
+            {isSearching && (
+              <Text style={styles.searchStatus}>검색 중...</Text>
+            )}
+            {searchResults.length > 0 && (
+              <View style={styles.searchResults}>
+                {searchResults.map((u) => (
+                  <Pressable
+                    key={u.id}
+                    style={styles.searchResultItem}
+                    onPress={() => handleSelectUser(u.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${u.nickname}와 채팅 시작`}
+                  >
+                    <Avatar uri={u.profileImageUrl} name={u.nickname} size={36} />
+                    <Text style={styles.searchResultName}>{u.nickname}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+            {!isSearching && searchQuery.length >= 2 && searchResults.length === 0 && (
+              <Text style={styles.searchStatus}>검색 결과가 없습니다</Text>
+            )}
           </View>
         )}
 
@@ -136,29 +153,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  createForm: {
-    flexDirection: 'row',
-    padding: 12,
-    gap: 8,
+  searchSection: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  createInput: {
-    flex: 1,
+  searchInput: {
     backgroundColor: colors.bg.secondary,
     color: colors.text.primary,
     borderRadius: 8,
     paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginHorizontal: 12,
+    marginTop: 8,
+    fontSize: 15,
+  },
+  searchStatus: {
+    color: colors.text.secondary,
+    fontSize: 13,
+    paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  createSubmit: {
-    backgroundColor: colors.accent.primary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
+  searchResults: {
+    paddingVertical: 4,
   },
-  createSubmitText: {
-    color: colors.bubble.mineText,
-    fontWeight: '600',
+  searchResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  searchResultName: {
+    color: colors.text.primary,
+    fontSize: 15,
   },
 });

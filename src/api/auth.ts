@@ -12,6 +12,16 @@ export async function refreshTokens(refreshToken: string): Promise<TokenResponse
   });
 }
 
+export type MeResponse = {
+  id: string;
+  nickname: string;
+  profileImageUrl?: string;
+};
+
+export async function getMe(): Promise<MeResponse> {
+  return apiClient<MeResponse>('/auth/me');
+}
+
 export async function logout(refreshToken: string): Promise<void> {
   await apiClient<{ success: boolean }>('/auth/logout', {
     method: 'POST',
