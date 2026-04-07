@@ -62,7 +62,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         return {
           messagesByRoom: {
             ...state.messagesByRoom,
-            [roomId]: [...newMessages, ...existing],
+            [roomId]: [...existing, ...newMessages],
           },
         };
       }
@@ -91,7 +91,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({
       messagesByRoom: {
         ...state.messagesByRoom,
-        [roomId]: [...(state.messagesByRoom[roomId] || []), pendingMessage],
+        [roomId]: [pendingMessage, ...(state.messagesByRoom[roomId] || [])],
       },
     }));
 
@@ -114,12 +114,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
         messagesByRoom: {
           ...state.messagesByRoom,
           [msg.roomId]: [
-            ...roomMessages,
             {
               ...msg,
               status: 'confirmed' as const,
               clientMessageId: msg.id,
             },
+            ...roomMessages,
           ],
         },
       };

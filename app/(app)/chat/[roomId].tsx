@@ -62,7 +62,7 @@ export default function ChatScreen() {
     if (!roomId || messages.length === 0) {
       return;
     }
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[0];
     if (lastMessage && lastMessage.status === 'confirmed') {
       markRead(roomId, lastMessage.id);
     }
@@ -76,12 +76,12 @@ export default function ChatScreen() {
   }, [user?.id, roomId, sendMessage]);
 
   const renderItem = useCallback(({ item, index }: { item: Message; index: number }) => {
-    // inverted FlatList: index 0 = 최신 메시지(화면 하단), index+1 = 더 오래된 메시지
-    const nextItem = messages[messages.length - 1 - (index + 1)];
+    // inverted FlatList: data[0]=최신(하단), data[n]=오래된(상단). index+1 = 시간상 이전 메시지
+    const prevItem = messages[index + 1];
     const showTimestamp =
-      !nextItem ||
-      nextItem.senderId !== item.senderId ||
-      !isSameMinute(item.createdAt, nextItem.createdAt);
+      !prevItem ||
+      prevItem.senderId !== item.senderId ||
+      !isSameMinute(item.createdAt, prevItem.createdAt);
 
     const isMine = item.senderId === user?.id;
     const isRead = isMine && otherReadAt != null && item.createdAt <= otherReadAt;
