@@ -1,19 +1,26 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../src/store/auth.store';
 import { colors, fontSize, spacing, borderRadius } from '../src/theme';
+import { useEffect } from 'react';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const handleDevLogin = async (name: string) => {
-    const res = await fetch(`${API_URL}/auth/dev-login?name=${name}`);
-    const data = await res.json();
-    await login({ accessToken: data.accessToken, refreshToken: data.refreshToken });
-    router.replace('/(app)/rooms');
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(app)/rooms');
+    }
+  }, [isAuthenticated, router]);
+
+  const handleOAuthLogin = (provider: 'google' | 'naver') => {
+    const url = `${API_URL}/auth/${provider}`;
+    if (Platform.OS === 'web') {
+      window.location.href = url;
+    }
   };
 
   return (
@@ -22,22 +29,22 @@ export default function LoginScreen() {
       <Text style={styles.subtitle}>미니멀 메신저</Text>
 
       <Pressable
-        style={styles.button}
-        onPress={() => handleDevLogin('Alice')}
+        style={[styles.button, styles.googleButton]}
+        onPress={() => handleOAuthLogin('google')}
         accessibilityRole="button"
-        accessibilityLabel="Alice로 로그인"
-        testID="dev-login-alice"
+        accessibilityLabel="Google로 로그인"
+        testID="login-google"
       >
-        <Text style={styles.buttonText}>Alice로 로그인 (Dev)</Text>
+        <Text style={styles.buttonText}>Google로 로그인</Text>
       </Pressable>
       <Pressable
-        style={styles.button}
-        onPress={() => handleDevLogin('Bob')}
+        style={[styles.button, styles.naverButton]}
+        onPress={() => handleOAuthLogin('naver')}
         accessibilityRole="button"
-        accessibilityLabel="Bob으로 로그인"
-        testID="dev-login-bob"
+        accessibilityLabel="Naver로 로그인"
+        testID="login-naver"
       >
-        <Text style={styles.buttonText}>Bob으로 로그인 (Dev)</Text>
+        <Text style={styles.buttonText}>Naver로 로그인</Text>
       </Pressable>
     </View>
   );
@@ -62,7 +69,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   button: {
-    backgroundColor: colors.bg.tertiary,
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.md,
@@ -70,8 +76,15 @@ const styles = StyleSheet.create({
     minWidth: 240,
     alignItems: 'center',
   },
+  googleButton: {
+    backgroundColor: '#4285F4',
+  },
+  naverButton: {
+    backgroundColor: '#03C75A',
+  },
   buttonText: {
-    color: colors.text.primary,
+    color: '#FFFFFF',
     fontSize: fontSize.md,
+    fontWeight: '600',
   },
 });
