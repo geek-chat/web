@@ -2,11 +2,15 @@ import { useEffect } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/auth.store';
 import { getMe } from '../../src/api/auth';
+import { useChat } from '../../src/hooks/useChat';
 import { colors } from '../../src/theme';
 
 export default function AppLayout() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // 소켓 연결은 앱 레이아웃에서 1번만 수행 (화면 이동 시 재연결 방지)
+  useChat();
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useChatStore } from '../store/chat.store';
 import { connectSocket, disconnectSocket, getSocket } from '../socket/socket';
 import { useAuthStore } from '../store/auth.store';
@@ -15,6 +15,10 @@ export function useChat() {
   const updateReadStatus = useChatStore((s) => s.updateReadStatus);
   const accessToken = useAuthStore((s) => s.accessToken);
 
+  // ref로 최신 함수 참조 — useEffect 의존성에서 제외하여 재연결 루프 방지
+  const handlersRef = useRef({ receiveMessage, confirmMessage, updateReadStatus });
+  handlersRef.current = { receiveMessage, confirmMessage, updateReadStatus };
+
   useEffect(() => {
     if (!accessToken) {
       return;
@@ -23,15 +27,15 @@ export function useChat() {
     const socket = connectSocket(accessToken);
 
     socket.on('new_message', (msg) => {
-      receiveMessage(msg);
+      handlersRef.current.receiveMessage(msg);
     });
 
     socket.on('message_ack', (ack: { clientMessageId: string; serverId: string }) => {
-      confirmMessage(ack.clientMessageId, ack.serverId);
+      handlersRef.current.confirmMessage(ack.clientMessageId, ack.serverId);
     });
 
     socket.on('read_update', (data: { roomId: string; userId: string; lastReadAt: string }) => {
-      updateReadStatus(data.roomId, data.userId, data.lastReadAt);
+      handlersRef.current.updateReadStatus(data.roomId, data.userId, data.lastReadAt);
     });
 
     return () => {
@@ -41,7 +45,7 @@ export function useChat() {
       s?.off('read_update');
       disconnectSocket();
     };
-  }, [accessToken, receiveMessage, confirmMessage, updateReadStatus]);
+  }, [accessToken]);
 
   const markRead = (roomId: string, lastReadMessageId: string) => {
     const socket = getSocket();

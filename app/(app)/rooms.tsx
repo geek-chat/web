@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, FlatList, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { useChat } from '../../src/hooks/useChat';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useRoomList } from '../../src/hooks/useRoomList';
 import { useUserSearch } from '../../src/hooks/useUserSearch';
@@ -12,7 +11,6 @@ import { colors } from '../../src/theme';
 
 export default function RoomsScreen() {
   const router = useRouter();
-  useChat();
   const { user, logout } = useAuth();
   const { rooms, loadRooms, createRoom } = useRoomList();
   const [showCreate, setShowCreate] = useState(false);

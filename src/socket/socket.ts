@@ -9,10 +9,20 @@ export function connectSocket(token: string): Socket {
     return socket;
   }
 
+  // 이미 소켓이 있고 연결 시도 중이면 재사용
+  if (socket && !socket.disconnected) {
+    return socket;
+  }
+
   socket = io(SERVER_URL, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['websocket'],
     autoConnect: true,
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 10000,
+    reconnectionAttempts: 10,
+    randomizationFactor: 0.5,
   });
 
   socket.on('connect', () => {
