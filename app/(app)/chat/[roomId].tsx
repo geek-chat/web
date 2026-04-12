@@ -1,9 +1,9 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
-import { useChat } from '../../../src/hooks/useChat';
+import { View, Text, FlatList, Pressable, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { useAuth } from '../../../src/hooks/useAuth';
 import { useChatStore } from '../../../src/store/chat.store';
+import { getSocket } from '../../../src/socket/socket';
 import MessageBubble from '../../../src/components/MessageBubble';
 import ChatInput from '../../../src/components/ChatInput';
 import { colors } from '../../../src/theme';
@@ -11,10 +11,15 @@ import { isSameMinute } from '../../../src/utils/date';
 import type { Message } from '../../../src/types';
 
 export default function ChatScreen() {
+  const router = useRouter();
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
-  const { messagesByRoom, readStatusByRoom, loadMessages, sendMessage, rooms, markRead } = useChat();
-  const { user } = useAuth();
+  const rooms = useChatStore((s) => s.rooms);
+  const messagesByRoom = useChatStore((s) => s.messagesByRoom);
+  const readStatusByRoom = useChatStore((s) => s.readStatusByRoom);
+  const loadMessages = useChatStore((s) => s.loadMessages);
+  const sendMessage = useChatStore((s) => s.sendMessage);
   const loadRooms = useChatStore((s) => s.loadRooms);
+  const { user } = useAuth();
   const flatListRef = useRef<FlatList<Message>>(null);
 
   const messages = messagesByRoom[roomId] || [];
@@ -64,9 +69,10 @@ export default function ChatScreen() {
     }
     const lastMessage = messages[0];
     if (lastMessage && lastMessage.status === 'confirmed') {
-      markRead(roomId, lastMessage.id);
+      const socket = getSocket();
+      socket?.emit('mark_read', { roomId, lastReadMessageId: lastMessage.id });
     }
-  }, [roomId, messages, markRead]);
+  }, [roomId, messages]);
 
   const handleSend = useCallback((content: string) => {
     if (!user?.id || !roomId) {
@@ -102,7 +108,21 @@ export default function ChatScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen
+        options={{
+          title,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel="뒤로 가기"
+            >
+              <Text style={styles.backButtonText}>{'← 뒤로'}</Text>
+            </Pressable>
+          ),
+        }}
+      />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -127,6 +147,14 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  backButtonText: {
+    color: colors.accent.primary,
+    fontSize: 15,
+  },
   container: {
     flex: 1,
     backgroundColor: colors.bg.primary,

@@ -55,6 +55,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     set((state) => {
       const existing = state.messagesByRoom[roomId] || [];
+
       if (cursor) {
         // 이전 메시지 로드 (위로 스크롤)
         const existingIds = new Set(existing.map((m) => m.id));
@@ -66,10 +67,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
           },
         };
       }
+
+      // 초기 로드: pending 메시지 보존 + 서버 메시지와 병합
+      const pendingMessages = existing.filter((m) => m.status === 'pending');
+      const serverIds = new Set(messages.map((m) => m.id));
+      // pending 중 서버에 이미 반영된 메시지 제거 (clientMessageId 기준)
+      const unresolvedPending = pendingMessages.filter(
+        (m) => !serverIds.has(m.id) && !messages.some((sm) => sm.clientMessageId === m.clientMessageId),
+      );
+
       return {
         messagesByRoom: {
           ...state.messagesByRoom,
-          [roomId]: messages,
+          [roomId]: [...unresolvedPending, ...messages],
         },
       };
     });
