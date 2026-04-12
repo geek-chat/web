@@ -91,7 +91,12 @@ export default function RoomsScreen() {
                     accessibilityLabel={`${u.nickname}와 채팅 시작`}
                   >
                     <Avatar uri={u.profileImageUrl} name={u.nickname} size={36} />
-                    <Text style={styles.searchResultName}>{u.nickname}</Text>
+                    <View>
+                      <Text style={styles.searchResultName}>{u.nickname}</Text>
+                      {u.username ? (
+                        <Text style={styles.searchResultUsername}>@{u.username}</Text>
+                      ) : null}
+                    </View>
                   </Pressable>
                 ))}
               </View>
@@ -184,5 +189,10 @@ const styles = StyleSheet.create({
   searchResultName: {
     color: colors.text.primary,
     fontSize: 15,
+  },
+  searchResultUsername: {
+    color: colors.text.secondary,
+    fontSize: 13,
+    marginTop: 2,
   },
 });

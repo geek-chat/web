@@ -1,6 +1,7 @@
 export type User = {
   id: string;
   nickname: string;
+  username?: string;
   profileImageUrl?: string;
 };
 

@@ -35,6 +35,16 @@ export default function AppLayout() {
     }
   }, [isAuthenticated, user, setUser]);
 
+  // username 미설정 시 설정 화면으로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated && user && !user.username) {
+      const timer = setTimeout(() => {
+        router.replace('/(app)/setup-username');
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user, router]);
+
   if (!isAuthenticated) {
     return null;
   }
