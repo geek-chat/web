@@ -113,12 +113,12 @@ export default function ChatScreen() {
           title,
           headerLeft: () => (
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.replace('/(app)/rooms')}
               style={styles.backButton}
               accessibilityRole="button"
-              accessibilityLabel="뒤로 가기"
+              accessibilityLabel="채팅방 목록으로 이동"
             >
-              <Text style={styles.backButtonText}>{'← 뒤로'}</Text>
+              <Text style={styles.backButtonText}>{'← 목록'}</Text>
             </Pressable>
           ),
         }}
