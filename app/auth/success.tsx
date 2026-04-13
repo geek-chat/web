@@ -15,6 +15,22 @@ export default function AuthSuccessScreen() {
     const hashParams = new URLSearchParams(hash);
     const accessToken = hashParams.get('access_token');
     const refreshToken = hashParams.get('refresh_token');
+    const linkingRequired = hashParams.get('linking_required');
+
+    if (linkingRequired === 'true' && accessToken) {
+      // 이메일 매칭으로 기존 계정 발견 → 연동 확인 화면으로 이동
+      const existingNickname = hashParams.get('existing_nickname') ?? '';
+      const newProvider = hashParams.get('new_provider') ?? '';
+      router.replace({
+        pathname: '/(auth)/link-account',
+        params: {
+          linkToken: accessToken,
+          existingNickname,
+          newProvider,
+        },
+      });
+      return;
+    }
 
     if (accessToken && refreshToken) {
       login({ accessToken, refreshToken }).then(() => {
