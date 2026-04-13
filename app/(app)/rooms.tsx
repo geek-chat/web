@@ -37,6 +37,8 @@ export default function RoomsScreen() {
       <Stack.Screen
         options={{
           title: 'GeekChat',
+          headerBackVisible: false,
+          headerLeft: () => null,
           headerRight: () => (
             <Pressable
               onPress={logout}
