@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { getSocket } from '../socket/socket';
+import { getSocket, forceReconnect } from '../socket/socket';
 import { getRooms as fetchRooms, getMessages as fetchMessages } from '../api/chat';
 import type { Room, MessageResponse, Message } from '../types';
 
@@ -191,8 +191,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
       },
     }));
 
+    // Send 시점 가드 — 소켓이 죽었으면 강제 재연결.
+    // socket.io는 disconnected 상태에서도 emit을 버퍼링하므로
+    // 재연결 후 자동으로 전송된다. 좀비 상태(connected=true but TCP dead)는
+    // 별도 트리거(visibilitychange 등)로 감지된다.
     const socket = getSocket();
-    socket?.emit('send_message', { roomId, content, clientMessageId });
+    if (!socket || !socket.connected) {
+      console.warn('[Send] Socket not connected — forcing reconnect, message buffered');
+      forceReconnect();
+    }
+    // forceReconnect 후 getSocket()으로 새 인스턴스 가져오기
+    getSocket()?.emit('send_message', { roomId, content, clientMessageId });
   },
 
   receiveMessage: (msg) => {
